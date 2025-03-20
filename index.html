@@ -116,19 +116,19 @@
     function verificarCodigo() {
         ticTacSound.pause();
         if (codigoIngresado === codigoCorrecto) {
-            mensajeDisplay.textContent = "¡Bomba desactivada!";
+            mensajeDisplay.textContent = "";
             bombaDisplay.textContent = "SAFE";
             seguroSound.currentTime = 0;
             seguroSound.play();
         } else {
             if (!bombaExplotada) {
-                mensajeDisplay.textContent = "¡BOOM!";
+                mensajeDisplay.textContent = "¡Fallaste!";
                 bombaDisplay.textContent = "💥💥💥";
                 explosionSound.currentTime = 0;
                 explosionSound.play();
                 bombaExplotada = true;
             } else {
-                mensajeDisplay.textContent = "¡Código incorrecto! La bomba ya no explotará.";
+                mensajeDisplay.textContent = "¡Correcto";
                 bombaDisplay.textContent = "SAFE";
                 seguroSound.currentTime = 0;
                 seguroSound.play();
