@@ -1,4 +1,89 @@
-html {
-  height: 100%;
-  width: 100%;
+let codigoIngresado = "";
+const codigoCorrecto = String(Math.floor(Math.random() * 9000) + 1000);
+let tiempoRestante = 10;
+let temporizadorInterval;
+let bombaExplotada = false;
+
+const codigoPantalla = document.getElementById("codigo-pantalla");
+const temporizadorDisplay = document.getElementById("temporizador");
+const mensajeDisplay = document.getElementById("mensaje");
+const ticTacSound = document.getElementById("tic-tac-sound");
+const explosionSound = document.getElementById("explosion-sound");
+const seguroSound = document.getElementById("seguro-sound");
+const bombaDisplay = document.querySelector(".display-bomba"); // Nuevo selector
+
+function ingresarDigito(digito) {
+    if (codigoIngresado.length < 4) {
+        codigoIngresado += digito;
+        codigoPantalla.textContent = codigoIngresado;
+        bombaDisplay.textContent = "*".repeat(codigoIngresado.length) + "-".repeat(4 - codigoIngresado.length); // Mostrar asteriscos
+        if (codigoIngresado.length === 4) {
+            iniciarTemporizador();
+        }
+    }
 }
+
+function borrarDigito() {
+    codigoIngresado = codigoIngresado.slice(0, -1);
+    codigoPantalla.textContent = codigoIngresado;
+    bombaDisplay.textContent = "*".repeat(codigoIngresado.length) + "-".repeat(4 - codigoIngresado.length); // Actualizar display
+    clearInterval(temporizadorInterval);
+    tiempoRestante = 10;
+    temporizadorDisplay.textContent = tiempoRestante;
+    mensajeDisplay.textContent = "";
+}
+
+function iniciarTemporizador() {
+    tiempoRestante = 10;
+    temporizadorDisplay.textContent = tiempoRestante;
+    ticTacSound.currentTime = 0;
+    ticTacSound.play();
+    bombaDisplay.textContent = codigoIngresado; // Mostrar el código durante la cuenta regresiva
+
+    temporizadorInterval = setInterval(() => {
+        tiempoRestante--;
+        temporizadorDisplay.textContent = tiempoRestante;
+        ticTacSound.currentTime = 0;
+        ticTacSound.play();
+
+        if (tiempoRestante <= 0) {
+            clearInterval(temporizadorInterval);
+            verificarCodigo();
+        }
+    }, 1000);
+}
+
+function verificarCodigo() {
+    ticTacSound.pause();
+    if (codigoIngresado === codigoCorrecto) {
+        mensajeDisplay.textContent = "¡Bomba desactivada!";
+        bombaDisplay.textContent = "SAFE";
+        seguroSound.currentTime = 0;
+        seguroSound.play();
+    } else {
+        if (!bombaExplotada) {
+            mensajeDisplay.textContent = "¡BOOM!";
+            bombaDisplay.textContent = "💥💥💥";
+            explosionSound.currentTime = 0;
+            explosionSound.play();
+            bombaExplotada = true;
+        } else {
+            mensajeDisplay.textContent = "¡Código incorrecto! La bomba ya no explotará.";
+            bombaDisplay.textContent = "FAILED";
+            seguroSound.currentTime = 0;
+            seguroSound.play();
+        }
+    }
+    codigoIngresado = "";
+    setTimeout(() => {
+        codigoPantalla.textContent = "";
+        if (bombaExplotada) {
+            bombaDisplay.textContent = "💥";
+        } else {
+            bombaDisplay.textContent = "";
+        }
+    }, 1500);
+}
+
+// Generar el código correcto (solo para pruebas en consola)
+console.log("Código correcto:", codigoCorrecto);

@@ -1,16 +1,308 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>replit</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Bomba</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  Hello world
-  <script src="script.js"></script>
+    <div class="container">
+        <div class="bomba-panel">
+            <div class="pantalla">
+                <div id="codigo-pantalla"></div>
+            </div>
+            <div class="temporizador-panel">
+                Tiempo: <span id="temporizador">5</span> s
+            </div>
+            <div class="bomba-representacion">
+                <div class="bomba-cuerpo">
+                    <div class="cable cable-rojo"></div>
+                    <div class="cable cable-azul"></div>
+                    <div class="display-bomba"></div>
+                    <div class="boton boton-rojo"></div>
+                </div>
+                <div class="detonador"></div>
+            </div>
+        </div>
+        <div class="teclado">
+            <button onclick="ingresarDigito('1')">1</button>
+            <button onclick="ingresarDigito('2')">2</button>
+            <button onclick="ingresarDigito('3')">3</button>
+            <button onclick="ingresarDigito('4')">4</button>
+            <button onclick="ingresarDigito('5')">5</button>
+            <button onclick="ingresarDigito('6')">6</button>
+            <button onclick="ingresarDigito('7')">7</button>
+            <button onclick="ingresarDigito('8')">8</button>
+            <button onclick="ingresarDigito('9')">9</button>
+            <button onclick="borrarDigito()">Borrar</button>
+        </div>
+        <div id="mensaje"></div>
+    </div>
+    <audio id="tic-tac-sound" src="tic-tac.wav"></audio>
+    <audio id="explosion-sound" src="explosion.wav"></audio>
+    <audio id="seguro-sound" src="seguro.wav"></audio>
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado con éxito:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Error al registrar el Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
-
 </html>
+<script>
+    let codigoIngresado = "";
+    const codigoCorrecto = String(Math.floor(Math.random() * 9000) + 1000);
+    let tiempoRestante = 5;
+    let temporizadorInterval;
+    let bombaExplotada = false;
+
+    const codigoPantalla = document.getElementById("codigo-pantalla");
+    const temporizadorDisplay = document.getElementById("temporizador");
+    const mensajeDisplay = document.getElementById("mensaje");
+    const ticTacSound = document.getElementById("tic-tac-sound");
+    const explosionSound = document.getElementById("explosion-sound");
+    const seguroSound = document.getElementById("seguro-sound");
+    const bombaDisplay = document.querySelector(".display-bomba"); // Nuevo selector
+
+    function ingresarDigito(digito) {
+        if (codigoIngresado.length < 4) {
+            codigoIngresado += digito;
+            codigoPantalla.textContent = codigoIngresado;
+            bombaDisplay.textContent = "*".repeat(codigoIngresado.length) + "-".repeat(4 - codigoIngresado.length); // Mostrar asteriscos
+            if (codigoIngresado.length === 1) {
+                iniciarTemporizador();
+                ticTacSound.currentTime = 0;
+                ticTacSound.play();
+            }
+        }
+    }
+
+    function borrarDigito() {
+        codigoIngresado = codigoIngresado.slice(0, -1);
+        codigoPantalla.textContent = codigoIngresado;
+        bombaDisplay.textContent = "*".repeat(codigoIngresado.length) + "-".repeat(4 - codigoIngresado.length); // Actualizar display
+//        clearInterval(temporizadorInterval);
+//        tiempoRestante = 5;
+//        temporizadorDisplay.textContent = tiempoRestante;
+        mensajeDisplay.textContent = "";
+    }
+
+    function iniciarTemporizador() {
+        tiempoRestante = 5;
+        temporizadorDisplay.textContent = tiempoRestante;
+//        ticTacSound.currentTime = 0;
+//        ticTacSound.play();
+//        bombaDisplay.textContent = codigoIngresado; // Mostrar el código durante la cuenta regresiva
+
+        temporizadorInterval = setInterval(() => {
+            tiempoRestante--;
+            temporizadorDisplay.textContent = tiempoRestante;
+            if (tiempoRestante <= 0) {
+                clearInterval(temporizadorInterval);
+                verificarCodigo();
+            }
+        }, 1000);
+    }
+
+    function verificarCodigo() {
+        ticTacSound.pause();
+        if (codigoIngresado === codigoCorrecto) {
+            mensajeDisplay.textContent = "¡Bomba desactivada!";
+            bombaDisplay.textContent = "SAFE";
+            seguroSound.currentTime = 0;
+            seguroSound.play();
+        } else {
+            if (!bombaExplotada) {
+                mensajeDisplay.textContent = "¡BOOM!";
+                bombaDisplay.textContent = "💥💥💥";
+                explosionSound.currentTime = 0;
+                explosionSound.play();
+                bombaExplotada = true;
+            } else {
+                mensajeDisplay.textContent = "¡Código incorrecto! La bomba ya no explotará.";
+                bombaDisplay.textContent = "SAFE";
+                seguroSound.currentTime = 0;
+                seguroSound.play();
+            }
+        }
+        codigoIngresado = "";
+        setTimeout(() => {
+            codigoPantalla.textContent = "";
+            if (bombaExplotada) {
+                bombaDisplay.textContent = "";
+            } else {
+                bombaDisplay.textContent = "";
+            }
+        }, 1500);
+    }
+
+    // Generar el código correcto (solo para pruebas en consola)
+    console.log("Código correcto:", codigoCorrecto);
+</script>
+<style>
+    body {
+        font-family: sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f0f0f0;
+        margin: 0;
+    }
+
+    .container {
+        background-color: #ddd;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .bomba-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .pantalla {
+        background-color: #222;
+        color: #00ff00;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        width: 200px;
+        text-align: center;
+        font-size: 1.5em;
+        letter-spacing: 5px;
+    }
+
+    #codigo-pantalla {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .temporizador-panel {
+        background-color: #333;
+        color: #fff;
+        padding: 8px 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-size: 1em;
+    }
+
+    .bomba-representacion {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .bomba-cuerpo {
+        background-color: #333;
+        border-radius: 10px;
+        width: 120px;
+        height: 80px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .cable {
+        position: absolute;
+        width: 30px;
+        height: 5px;
+        border-radius: 2px;
+        background-color: #000;
+    }
+
+    .cable-rojo {
+        top: 15px;
+        left: -20px;
+    }
+
+    .cable-azul {
+        bottom: 15px;
+        right: -20px;
+    }
+
+    .display-bomba {
+        background-color: #111;
+        color: #f00;
+        font-size: 1.5em;
+        padding: 5px 10px;
+        border-radius: 3px;
+        margin-bottom: 5px;
+        width: 80%;
+        text-align: center;
+    }
+
+    .boton {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        position: absolute;
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    .boton-rojo {
+        background-color: #ff0000;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .detonador {
+        background-color: #666;
+        width: 60px;
+        height: 15px;
+        border-radius: 5px;
+        margin-top: 10px;
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .teclado {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .teclado button {
+        padding: 15px 20px;
+        font-size: 1.2em;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #444;
+        color: #fff;
+        transition: background-color 0.3s ease;
+    }
+
+    .teclado button:hover {
+        background-color: #555;
+    }
+
+    #mensaje {
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+    }
+style>
